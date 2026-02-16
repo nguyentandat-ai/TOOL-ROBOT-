@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1" name="viewport">
-    <title>LUKZANMODZ - FIXED API</title>
+    <title>LUKZANMODZ - SUPREME FIXED</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
@@ -16,7 +16,7 @@
         iframe { width: 100vw; height: 100vh; border: none; position: fixed; top: 0; left: 0; z-index: 1; }
 
         #lukzan-root {
-            position: fixed; top: 100px; left: 10px;
+            position: fixed; top: 120px; left: 15px;
             z-index: 9999999; touch-action: none; cursor: move;
             width: 280px;
         }
@@ -29,7 +29,7 @@
         }
         #session-id { color: #ffffff; font-size: 17px; font-weight: 900; text-shadow: 2px 2px 4px #000; }
         #prediction-content { display: block; font-weight: 900; margin-top: 2px; }
-        .analyzing { color: #ffcc00; font-size: 12px; animation: blink 0.6s infinite; text-transform: uppercase; }
+        .analyzing { color: #ffcc00; font-size: 11px; animation: blink 0.6s infinite; text-transform: uppercase; }
         .val-result { 
             color: #00ffcc; text-transform: uppercase; font-size: 26px; 
             text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc; letter-spacing: 2px;
@@ -45,13 +45,14 @@
     <div class="robot-container">
         <img src="https://i.postimg.cc/CxXCzC6Q/tool-ai-link-fix.gif" class="robot-icon">
         <div class="info-overlay">
-            <div id="session-id">-------</div>
+            <div id="session-id">CONNECTING</div>
             <div id="prediction-content"><span class="analyzing">ĐANG QUÉT...</span></div>
         </div>
     </div>
 </div>
 
 <script>
+    // --- KÉO THẢ ---
     const dragRoot = document.getElementById("lukzan-root");
     let isDragging = false, startX, startY, initialX, initialY;
     dragRoot.onmousedown = dragRoot.ontouchstart = (e) => {
@@ -68,46 +69,57 @@
     };
     window.onmouseup = window.ontouchend = () => isDragging = false;
 
+    // --- LOGIC API SIÊU CẤP ---
     let lastPhien = "";
     let isWaiting = false;
 
     async function updateTool() {
         const sessionEl = document.getElementById("session-id");
         const predictEl = document.getElementById("prediction-content");
+        const baseApi = "https://lc79-byck.onrender.com/lc79/md5";
         
-        // Dùng Proxy siêu tốc Codetabs để tránh lỗi GitHub
-        const apiUrl = `https://lc79-byck.onrender.com/lc79/md5?t=${Date.now()}`;
-        const proxyUrl = `https://api.codetabs.com/v1/proxy?url=${encodeURIComponent(apiUrl)}`;
+        // Danh sách các cổng dự phòng để không bao giờ lỗi
+        const urls = [
+            `https://api.allorigins.win/get?url=${encodeURIComponent(baseApi)}&t=${Date.now()}`,
+            `https://api.codetabs.com/v1/proxy?url=${encodeURIComponent(baseApi)}`
+        ];
 
-        try {
-            const res = await fetch(proxyUrl);
-            const data = await res.json();
-
-            if (data && data.phien) {
-                let currentPhien = data.phien;
-                let nextPhien = (parseInt(currentPhien) + 1).toString();
+        for (let url of urls) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) continue;
+                let data = await res.json();
                 
-                sessionEl.innerText = nextPhien;
+                // Giải mã nếu dùng AllOrigins
+                if (data.contents) data = JSON.parse(data.contents);
 
-                if (nextPhien !== lastPhien && !isWaiting) {
-                    lastPhien = nextPhien;
-                    isWaiting = true;
-                    predictEl.innerHTML = '<span class="analyzing">ĐANG QUÉT...</span>';
+                if (data && data.phien) {
+                    let nextPhien = (parseInt(data.phien) + 1).toString();
+                    sessionEl.innerText = nextPhien;
 
-                    setTimeout(() => {
-                        let kq = data.du_doan.toUpperCase();
-                        predictEl.innerHTML = `<span class="val-result">${kq}</span>`;
-                        isWaiting = false;
-                    }, 2500); 
+                    if (nextPhien !== lastPhien && !isWaiting) {
+                        lastPhien = nextPhien;
+                        isWaiting = true;
+                        predictEl.innerHTML = '<span class="analyzing">ĐANG QUÉT...</span>';
+
+                        setTimeout(() => {
+                            let kq = data.du_doan.toUpperCase();
+                            predictEl.innerHTML = `<span class="val-result">${kq}</span>`;
+                            isWaiting = false;
+                        }, 2500); 
+                    }
+                    return; // Thoát vòng lặp nếu lấy được data
                 }
+            } catch (e) {
+                console.log("Cổng lỗi, thử cổng tiếp theo...");
             }
-        } catch (e) {
-            console.log("API đang bận, đợi tí...");
         }
     }
 
-    // Quét 1.5 giây 1 lần cho nó máu
-    setInterval(updateTool, 1500);
+    // Đánh thức server Render mỗi 30s (Tránh Sleep)
+    setInterval(() => { fetch("https://lc79-byck.onrender.com/lc79/md5").catch(()=>{}); }, 30000);
+
+    setInterval(updateTool, 2000);
     updateTool();
 </script>
 </body>
