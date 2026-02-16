@@ -3,72 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width,initial-scale=1" name="viewport">
-    <title>LUKZANMODZ - SUPREME ROBOT</title>
+    <title>LUKZANMODZ - FIXED API</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap" rel="stylesheet">
     <style>
-        /* RESET & NỀN CYBERPUNK CỦA MÀY */
         * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
         body { 
             font-family: 'Roboto', sans-serif; 
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
                         url('https://files.catbox.moe/4hznjk.jpeg') no-repeat center center fixed;
-            background-size: cover;
-            overflow: hidden; height: 100vh; width: 100vw; 
+            background-size: cover; overflow: hidden; height: 100vh; width: 100vw; 
         }
-
-        /* IFRAME GAME */
         iframe { width: 100vw; height: 100vh; border: none; position: fixed; top: 0; left: 0; z-index: 1; }
 
-        /* KHUNG CHỨA ROBOT VÀ KÉO THẢ */
         #lukzan-root {
-            position: fixed; top: 150px; left: 20px;
+            position: fixed; top: 100px; left: 10px;
             z-index: 9999999; touch-action: none; cursor: move;
-            width: 320px; /* Độ rộng bao phủ robot và bảng */
-            filter: drop-shadow(0 0 20px rgba(0,255,204,0.4));
+            width: 280px;
         }
-
         .robot-container { position: relative; width: 100%; }
+        .robot-icon { width: 100%; height: auto; pointer-events: none; filter: drop-shadow(0 0 15px rgba(0,255,204,0.5)); }
 
-        .robot-icon { width: 100%; height: auto; pointer-events: none; }
-
-        /* KHU VỰC CHỮ TRONG KHUNG CỦA ROBOT */
         .info-overlay {
-            position: absolute;
-            top: 48%; /* Căn vào giữa khung bảng robot cầm */
-            left: 64%; /* Đẩy sang phải vào giữa bảng */
-            transform: translate(-50%, -50%);
-            text-align: center;
-            width: 150px;
+            position: absolute; top: 48%; left: 63%; 
+            transform: translate(-50%, -50%); text-align: center; width: 130px;
         }
-
-        /* SỐ PHIÊN */
-        #session-id { 
-            color: #ffffff; 
-            font-size: 19px; 
-            font-weight: 900;
-            text-shadow: 2px 2px 5px rgba(0,0,0,1);
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        /* DỰ ĐOÁN */
-        #prediction-content { display: block; font-weight: 900; }
-        
-        .analyzing { 
-            color: #ffcc00; 
-            font-size: 14px; 
-            animation: blink 0.6s infinite; 
-            text-transform: uppercase;
-        }
-        
+        #session-id { color: #ffffff; font-size: 17px; font-weight: 900; text-shadow: 2px 2px 4px #000; }
+        #prediction-content { display: block; font-weight: 900; margin-top: 2px; }
+        .analyzing { color: #ffcc00; font-size: 12px; animation: blink 0.6s infinite; text-transform: uppercase; }
         .val-result { 
-            color: #00ffcc; 
-            text-transform: uppercase; 
-            font-size: 30px; 
-            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
-            letter-spacing: 3px;
+            color: #00ffcc; text-transform: uppercase; font-size: 26px; 
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc; letter-spacing: 2px;
         }
-
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
@@ -78,20 +43,17 @@
 
 <div id="lukzan-root">
     <div class="robot-container">
-        <img src="https://i.postimg.cc/CxXCzC6Q/tool-ai-link-fix.gif" class="robot-icon" alt="Robot">
-        
+        <img src="https://i.postimg.cc/CxXCzC6Q/tool-ai-link-fix.gif" class="robot-icon">
         <div class="info-overlay">
-            <div id="session-id">LOADING...</div>
-            <div id="prediction-content"><span class="analyzing">SYNCING...</span></div>
+            <div id="session-id">-------</div>
+            <div id="prediction-content"><span class="analyzing">ĐANG QUÉT...</span></div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- HỆ THỐNG KÉO THẢ MƯỢT MÀ ---
     const dragRoot = document.getElementById("lukzan-root");
     let isDragging = false, startX, startY, initialX, initialY;
-    
     dragRoot.onmousedown = dragRoot.ontouchstart = (e) => {
         isDragging = true;
         const c = e.touches ? e.touches[0] : e;
@@ -106,58 +68,47 @@
     };
     window.onmouseup = window.ontouchend = () => isDragging = false;
 
-    // --- HỆ THỐNG API FIX LỖI GITHUB CỰC MẠNH ---
-    let lastProcessedSession = "";
-    let isAnalyzing = false;
+    let lastPhien = "";
+    let isWaiting = false;
 
-    async function updateRobot() {
+    async function updateTool() {
         const sessionEl = document.getElementById("session-id");
         const predictEl = document.getElementById("prediction-content");
         
-        const apiUrl = 'https://lc79-byck.onrender.com/lc79/md5';
-        // Sử dụng Proxy để vượt rào cản HTTPS của GitHub
-        const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}&t=${Date.now()}`;
+        // Dùng Proxy siêu tốc Codetabs để tránh lỗi GitHub
+        const apiUrl = `https://lc79-byck.onrender.com/lc79/md5?t=${Date.now()}`;
+        const proxyUrl = `https://api.codetabs.com/v1/proxy?url=${encodeURIComponent(apiUrl)}`;
 
         try {
-            const res = await fetch(proxy);
-            if (!res.ok) return;
-            const json = await res.json();
-            
-            // Ép kiểu dữ liệu vì Proxy thường trả về String
-            let data = json.contents;
-            if (typeof data === "string") {
-                data = JSON.parse(data);
-            }
+            const res = await fetch(proxyUrl);
+            const data = await res.json();
 
             if (data && data.phien) {
-                // Đồng bộ phiên: Phiên API + 1 = Phiên đang chạy trên Game
-                let nextSession = (parseInt(data.phien) + 1).toString();
-                sessionEl.innerText = nextSession;
+                let currentPhien = data.phien;
+                let nextPhien = (parseInt(currentPhien) + 1).toString();
+                
+                sessionEl.innerText = nextPhien;
 
-                // Chỉ phân tích khi có phiên mới hoàn toàn
-                if (nextSession !== lastProcessedSession && !isAnalyzing) {
-                    lastProcessedSession = nextSession;
-                    isAnalyzing = true;
-
-                    // Hiển thị trạng thái phân tích (2.5 giây làm màu)
+                if (nextPhien !== lastPhien && !isWaiting) {
+                    lastPhien = nextPhien;
+                    isWaiting = true;
                     predictEl.innerHTML = '<span class="analyzing">ĐANG QUÉT...</span>';
 
                     setTimeout(() => {
-                        // Hiển thị kết quả Tài/Xỉu trần trụi
-                        let result = data.du_doan.toUpperCase();
-                        predictEl.innerHTML = `<span class="val-result">${result}</span>`;
-                        isAnalyzing = false;
+                        let kq = data.du_doan.toUpperCase();
+                        predictEl.innerHTML = `<span class="val-result">${kq}</span>`;
+                        isWaiting = false;
                     }, 2500); 
                 }
             }
-        } catch (e) { 
-            console.log("Re-connecting to API...");
+        } catch (e) {
+            console.log("API đang bận, đợi tí...");
         }
     }
 
-    // Quét mỗi 2 giây để đảm bảo không lỡ phiên
-    setInterval(updateRobot, 2000);
-    updateRobot();
+    // Quét 1.5 giây 1 lần cho nó máu
+    setInterval(updateTool, 1500);
+    updateTool();
 </script>
 </body>
 </html>
